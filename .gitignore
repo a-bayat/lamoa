@@ -1,0 +1,9 @@
+**/target
+**/.bloop
+**/.metals
+**/.vscode
+**/.bsp
+**/.idea
+**/out
+.DS_Store
+.scalafmt.conf
