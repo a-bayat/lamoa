@@ -10,5 +10,6 @@ lazy val root = (project in file("."))
     name := "lamoa",
     libraryDependencies += scalaTest,
     libraryDependencies += slf4j,
-    libraryDependencies += figlet
+    libraryDependencies += figlet,
+    libraryDependencies += sttp,
   )
