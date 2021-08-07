@@ -1,5 +1,5 @@
 # Lamoa
-*Simple scala app help you get appropriate subtitle for given movie ;)* 
+*Simple scala app help you get appropriate subtitle for given movie ;)*
 ##TODO Completion 
 -[ ] **TECH**
     - HttpClient(STTP)
