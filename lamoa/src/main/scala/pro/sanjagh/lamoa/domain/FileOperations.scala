@@ -9,6 +9,25 @@ import scala.util.{Failure, Success, Try}
 object FileOperations {
 
   /**
+    * read dir and extract the name of file without extension
+ *
+    * @return file name only
+   */
+  @tailrec
+  def filePathRead: String = {
+    val files = getMediaFiles(readDir)
+    files match {
+      case files if files.size > 1  => removeExtension(files(chooseItem(files)))
+      case files if files.size == 1 => files.head.getName
+      case files if files.isEmpty =>
+        println(
+          "The path you entered does not contain any file. please enter again."
+        )
+        filePathRead
+    }
+  }
+
+  /**
     * A recursive function which tries to read a valid path by checking input value to be directory or MediaFile
     * @return File
     * @note db case Success value means directory or media file
@@ -28,13 +47,18 @@ object FileOperations {
     */
   def chooseItem(media: List[File]): Int = {
     println("Available Items: ")
-    media.zipWithIndex.foreach { case (elm, idx) => println(s"\t$idx. ${elm.getName}") }
+    media.zipWithIndex.foreach {
+      case (elm, idx) => println(s"\t$idx. ${elm.getName}")
+    }
 
     @tailrec
     def recItem: Int = {
       print("Enter the Item index you wish to get subtitle: ")
       Try(StdIn.readInt()) match {
-        case Success(n) if n >= media.indexOf(media.head) && n <= media.indexOf(media.last) => n
+        case Success(n)
+            if n >= media
+              .indexOf(media.head) && n <= media.indexOf(media.last) =>
+          n
         case _ => recItem
       }
     }
@@ -45,7 +69,7 @@ object FileOperations {
     * get all media file by filtering file list, and if
     * @return
     */
-  implicit def getMediaFiles(file: File): List[File] = {
+  def getMediaFiles(file: File): List[File] = {
     file match {
       case d if d.isDirectory  => file.listFiles().filter(isMediaFile).toList
       case f if isMediaFile(f) => List(f)
@@ -63,5 +87,9 @@ object FileOperations {
 
   private[domain] def getMimeType(file: File): Option[String] = {
     Option(Files.probeContentType(file.toPath))
+  }
+
+  private[domain] def removeExtension(file: File): String = {
+    file.getName.replaceFirst("[.][^.]+$", "")
   }
 }
