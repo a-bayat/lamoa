@@ -12,4 +12,6 @@ lazy val root = (project in file("."))
     libraryDependencies += slf4j,
     libraryDependencies += figlet,
     libraryDependencies += sttp,
+    libraryDependencies += jsoup,
+    libraryDependencies += typesafeConfig
   )
