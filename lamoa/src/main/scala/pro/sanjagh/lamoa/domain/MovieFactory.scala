@@ -1,8 +1,9 @@
 package pro.sanjagh.lamoa.domain
 
 import java.net.UnknownHostException
+import java.nio.file.Path
 
-import pro.sanjagh.lamoa.domain.FileOperations.filePathRead
+import pro.sanjagh.lamoa.domain.FileOperations.{filePathRead, removeExtension}
 import pro.sanjagh.lamoa.model.MovieDetail
 
 import scala.annotation.tailrec
@@ -14,15 +15,23 @@ object MovieFactory {
   def Ignite(): MovieDetail = {
     val language = Configuration.get.getConfig("config").getString("language")
     val mediaFile = filePathRead
-    val extractedMovieName = ExtractMovieName(mediaFile)
+    val extractedMovieName = ExtractMovieName(mediaFile.getName)
 
-    MovieDetail(extractedMovieName, getYear(mediaFile), "", getQuality(mediaFile), language)
+    MovieDetail(
+      extractedMovieName,
+      Path.of(mediaFile.getParent + "/"+ removeExtension(mediaFile)),
+      getYear(mediaFile.getName),
+      "",
+      getQuality(mediaFile.getName),
+      getResolution(mediaFile.getName),
+      language
+    )
   }
 
   def ExtractMovieName(name: String): String = {
     finalMovieName(extractName(StringExtractor.standardString(name))) match {
       case Success(movie) => movie
-      case Failure(ex)    =>
+      case Failure(ex) =>
         println(ex)
         sys.exit
     }
@@ -46,7 +55,7 @@ object MovieFactory {
               sys.exit
             }
           case _: NullPointerException =>
-            println("The movie you are looking for is not available.")
+            println(s"The movie $name you are looking for is not available.")
             StdIn.readLine("Plz Enter the right movie name: ") match {
               case n: String =>
                 finalMovieName(StringExtractor.standardString(n))
@@ -92,14 +101,35 @@ object MovieFactory {
     }
   }
 
-  private def getQuality(file: String): String = {
+  private def getResolution(file: String): String = {
     file match {
-      case q if q.toLowerCase.contains("1080p")  => "1080p"
-      case q if q.toLowerCase.contains("720p")   => "720p"
-      case q if q.toLowerCase.contains("480p")   => "480p"
+      case q
+          if q.toLowerCase
+            .contains("1080p") || q.toLowerCase.contains("1080") =>
+        "1080p"
+      case q
+          if q.toLowerCase.contains("720p") || q.toLowerCase.contains("720") =>
+        "720p"
+      case q
+          if q.toLowerCase.contains("480p") || q.toLowerCase.contains("480") =>
+        "480p"
       case q if q.toLowerCase.contains("brrip")  => "BRRip"
       case q if q.toLowerCase.contains("web-dl") => "WEB-DL"
       case q if q.toLowerCase.contains("webrip") => "WEBRip"
+      case _                                     => ""
+    }
+  }
+
+  private def getQuality(file: String): String = {
+    file match {
+      case q if q.toLowerCase.contains("bluray")  => "BluRay"
+      case q if q.toLowerCase.contains("bdrip")   => "BDRip"
+      case q if q.toLowerCase.contains("brrip")   => "BRRip"
+      case q if q.toLowerCase.contains("web-DL")  => "WEB-DL"
+      case q if q.toLowerCase.contains("webrip") => "WEBRip"
+      case q if q.toLowerCase.contains("hdtv") => "HDTV"
+      case q if q.toLowerCase.contains("tvrip") => "TVRip"
+      case q if q.toLowerCase.contains("hdcam") => "HDCAM"
       case _                                     => ""
     }
   }
