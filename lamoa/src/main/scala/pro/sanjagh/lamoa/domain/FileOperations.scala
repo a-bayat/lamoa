@@ -4,7 +4,7 @@ import java.nio.file.Files
 
 import scala.annotation.tailrec
 import scala.io.StdIn
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 object FileOperations {
 
@@ -14,11 +14,11 @@ object FileOperations {
     * @return file name only
    */
   @tailrec
-  def filePathRead: String = {
+  def filePathRead: File = {
     val files = getMediaFiles(readDir)
     files match {
-      case files if files.size > 1  => removeExtension(files(chooseItem(files)))
-      case files if files.size == 1 => files.head.getName
+      case files if files.size > 1  => files(chooseItem(files))
+      case files if files.size == 1 => files.head
       case files if files.isEmpty =>
         println(
           "The path you entered does not contain any file. please enter again."

@@ -2,7 +2,7 @@ package pro.sanjagh.lamoa
 
 import com.colofabrix.scala.figlet4s.options.HorizontalLayout
 import com.colofabrix.scala.figlet4s.unsafe.{FIGureOps, Figlet4s, OptionsBuilderOps}
-import pro.sanjagh.lamoa.domain.MovieFactory
+import pro.sanjagh.lamoa.domain.{ExtractSubtitle, MovieFactory}
 
 
 object Startup extends App {
@@ -14,5 +14,5 @@ object Startup extends App {
      .print()
   banner()
 
-  MovieFactory.Ignite()
+  ExtractSubtitle.extract()
 }

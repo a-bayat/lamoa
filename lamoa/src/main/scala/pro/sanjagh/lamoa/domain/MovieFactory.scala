@@ -1,8 +1,9 @@
 package pro.sanjagh.lamoa.domain
 
 import java.net.UnknownHostException
+import java.nio.file.Path
 
-import pro.sanjagh.lamoa.domain.FileOperations.filePathRead
+import pro.sanjagh.lamoa.domain.FileOperations.{filePathRead, removeExtension}
 import pro.sanjagh.lamoa.model.MovieDetail
 
 import scala.annotation.tailrec
@@ -14,14 +15,15 @@ object MovieFactory {
   def Ignite(): MovieDetail = {
     val language = Configuration.get.getConfig("config").getString("language")
     val mediaFile = filePathRead
-    val extractedMovieName = ExtractMovieName(mediaFile)
+    val extractedMovieName = ExtractMovieName(mediaFile.getName)
 
     MovieDetail(
       extractedMovieName,
-      getYear(mediaFile),
+      Path.of(mediaFile.getParent + "/"+ removeExtension(mediaFile)),
+      getYear(mediaFile.getName),
       "",
-      getQuality(mediaFile),
-      getResolution(mediaFile),
+      getQuality(mediaFile.getName),
+      getResolution(mediaFile.getName),
       language
     )
   }
@@ -120,14 +122,14 @@ object MovieFactory {
 
   private def getQuality(file: String): String = {
     file match {
-      case q if q.toLowerCase.contains("BluRay")  => "BluRay"
-      case q if q.toLowerCase.contains("BDRip")   => "BDRip"
-      case q if q.toLowerCase.contains("BRRip")   => "BRRip"
-      case q if q.toLowerCase.contains("WEB-DL")  => "WEB-DL"
-      case q if q.toLowerCase.contains("WEBRip") => "WEBRip"
-      case q if q.toLowerCase.contains("HDTV") => "HDTV"
-      case q if q.toLowerCase.contains("TVRip") => "TVRip"
-      case q if q.toLowerCase.contains("HDCAM") => "HDCAM"
+      case q if q.toLowerCase.contains("bluray")  => "BluRay"
+      case q if q.toLowerCase.contains("bdrip")   => "BDRip"
+      case q if q.toLowerCase.contains("brrip")   => "BRRip"
+      case q if q.toLowerCase.contains("web-DL")  => "WEB-DL"
+      case q if q.toLowerCase.contains("webrip") => "WEBRip"
+      case q if q.toLowerCase.contains("hdtv") => "HDTV"
+      case q if q.toLowerCase.contains("tvrip") => "TVRip"
+      case q if q.toLowerCase.contains("hdcam") => "HDCAM"
       case _                                     => ""
     }
   }
