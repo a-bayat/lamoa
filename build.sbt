@@ -12,3 +12,5 @@ libraryDependencies += figlet
 libraryDependencies += sttp
 libraryDependencies += jsoup
 libraryDependencies += typesafeConfig
+
+enablePlugins(JavaAppPackaging)

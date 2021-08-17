@@ -17,13 +17,12 @@ object ExtractSubtitle {
   private val timeout =
     Configuration.get.getConfig("server.subtitle").getInt("timeout")
 
-  val subtitleName: MovieDetail = MovieFactory.Ignite()
-
-  /**
-   * this function is the main function which handle all the logic of this object
-   */
-  def extract(): Unit = {
-    val elements = checkForSubtitle
+  /** this function is the main function which handle all the logic of this
+    * object
+    */
+  def extract(address: Option[String]): Unit = {
+    val subtitleName: MovieDetail = MovieFactory.Ignite(address)
+    val elements = checkForSubtitle(subtitleName)
     val matchedUrl = getSimilarObjects(elements, subtitleName.name) match {
       case Success(a) => a.absUrl("href")
       case Failure(_) =>
@@ -31,16 +30,15 @@ object ExtractSubtitle {
         sys.exit
     }
 
-    val filteredElement = applyFilter(matchedUrl)
+    val filteredElement = applyFilter(matchedUrl, subtitleName)
 
-    downloadFileInto(getDownloadLink(filteredElement))
+    downloadFileInto(getDownloadLink(filteredElement), subtitleName)
   }
 
-  /**
-   * this will check the validated name is available in the subtitle site
-   * @return
-   */
-  def checkForSubtitle: Elements = {
+  /** this will check the validated name is available in the subtitle site
+    * @return
+    */
+  def checkForSubtitle(subtitleName: MovieDetail): Elements = {
     val subtitleHtml =
       Jsoup
         .connect(s"$subtitle_url")
@@ -51,12 +49,16 @@ object ExtractSubtitle {
     subtitleHtml.select("div.title")
   }
 
-  /**
-   * this function tries to extract the exact time which is applied by checkForSubtitle function
-   * @param elements the available items which is returned on subtitle site which we try to get the exact item
-   * @param name the standard name of movie which is validated by IMDB site
-   * @return the exact item similar to name
-   */
+  /** this function tries to extract the exact time which is applied by
+    * checkForSubtitle function
+    * @param elements
+    *   the available items which is returned on subtitle site which we try to
+    *   get the exact item
+    * @param name
+    *   the standard name of movie which is validated by IMDB site
+    * @return
+    *   the exact item similar to name
+    */
   def getSimilarObjects(elements: Elements, name: String): Try[Element] = {
 
     elements.select(s"a:contains($name)").first match {
@@ -68,12 +70,13 @@ object ExtractSubtitle {
     }
   }
 
-  /**
-   * apply all filters on elements related to movie such as quality, resolution and language
-   * @param url the link which returns elements
-   * @return
-   */
-  def applyFilter(url: String): Element = {
+  /** apply all filters on elements related to movie such as quality, resolution
+    * and language
+    * @param url
+    *   the link which returns elements
+    * @return
+    */
+  def applyFilter(url: String, subtitleName: MovieDetail): Element = {
     val subtitleHtml =
       Jsoup
         .connect(url)
@@ -88,36 +91,36 @@ object ExtractSubtitle {
         result.select(s"a:contains(${subtitleName.resolution})")
       case r if r.quality.nonEmpty && r.quality.nonEmpty =>
         result
-         .select(s"a:contains(${subtitleName.resolution})")
-         .select(s"a:contains(${subtitleName.quality})")
+          .select(s"a:contains(${subtitleName.resolution})")
+          .select(s"a:contains(${subtitleName.quality})")
     }
 
     result.first()
   }
 
-  /**
-   * Tries to extract element download link
-   * @param elm is the specified element contains subtitle link
-   * @return
-   */
+  /** Tries to extract element download link
+    * @param elm
+    *   is the specified element contains subtitle link
+    * @return
+    */
   private def getDownloadLink(elm: Element): String = {
     val url = elm.absUrl("href")
 
     Jsoup.connect(url).get().select(".download a").first.absUrl("href")
   }
 
-  /**
-   * this function download and unzip subtitle into specified directory
-   * @param url the link we try to download file from it
-   */
-  def downloadFileInto(url: String): Unit = {
+  /** this function download and unzip subtitle into specified directory
+    * @param url
+    *   the link we try to download file from it
+    */
+  def downloadFileInto(url: String, subtitleName: MovieDetail): Unit = {
     val intro = Jsoup
-     .connect(url)
-     .followRedirects(true)
-     .ignoreContentType(true)
-     .maxBodySize(0)
-     .method(Method.GET)
-     .execute
+      .connect(url)
+      .followRedirects(true)
+      .ignoreContentType(true)
+      .maxBodySize(0)
+      .method(Method.GET)
+      .execute
 
     val inputStream = new ZipInputStream(intro.bodyStream())
     val pathBuilder = new StringBuilder(subtitleName.path.toString)
@@ -125,8 +128,8 @@ object ExtractSubtitle {
     val amir = inputStream.getNextEntry
     val file = new File(
       pathBuilder
-       .append(amir.getName.substring(amir.getName.lastIndexOf(".")))
-       .toString()
+        .append(amir.getName.substring(amir.getName.lastIndexOf(".")))
+        .toString()
     )
     val fos = new FileOutputStream(file)
     val buffer = new Array[Byte](1024)

@@ -13,9 +13,8 @@ object FileOperations {
  *
     * @return file name only
    */
-  @tailrec
-  def filePathRead: File = {
-    val files = getMediaFiles(readDir)
+  def filePathRead(address: File): File = {
+    val files = getMediaFiles(address)
     files match {
       case files if files.size > 1  => files(chooseItem(files))
       case files if files.size == 1 => files.head
@@ -23,20 +22,8 @@ object FileOperations {
         println(
           "The path you entered does not contain any file. please enter again."
         )
-        filePathRead
-    }
-  }
-
-  /**
-    * A recursive function which tries to read a valid path by checking input value to be directory or MediaFile
-    * @return File
-    * @note db case Success value means directory or media file
-    */
-  @tailrec
-  def readDir: File = {
-    Try(new File(StdIn.readLine("Enter valid dir path: "))) match {
-      case Success(df) if df.isDirectory || isMediaFile(df) => df
-      case _                                                => readDir
+        System.exit(0)
+        ???
     }
   }
 

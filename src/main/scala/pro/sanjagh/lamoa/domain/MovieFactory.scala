@@ -9,17 +9,26 @@ import pro.sanjagh.lamoa.model.MovieDetail
 import scala.annotation.tailrec
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
+import java.io.File
 
 object MovieFactory {
 
-  def Ignite(): MovieDetail = {
+  def Ignite(address: Option[String]): MovieDetail = {
     val language = Configuration.get.getConfig("config").getString("language")
-    val mediaFile = filePathRead
+    val targetFile: File = address match {
+      case Some(a) => new File(a)
+      case None    => new File(System.getProperty("user.dir"))
+    }
+
+    println("------ debug -----")
+    println(targetFile.getAbsolutePath())
+
+    val mediaFile = filePathRead(targetFile)
     val extractedMovieName = ExtractMovieName(mediaFile.getName)
 
     MovieDetail(
       extractedMovieName,
-      Path.of(mediaFile.getParent + "/"+ removeExtension(mediaFile)),
+      Path.of(mediaFile.getParent + "/" + removeExtension(mediaFile)),
       getYear(mediaFile.getName),
       "",
       getQuality(mediaFile.getName),
@@ -122,14 +131,14 @@ object MovieFactory {
 
   private def getQuality(file: String): String = {
     file match {
-      case q if q.toLowerCase.contains("bluray")  => "BluRay"
-      case q if q.toLowerCase.contains("bdrip")   => "BDRip"
-      case q if q.toLowerCase.contains("brrip")   => "BRRip"
-      case q if q.toLowerCase.contains("web-DL")  => "WEB-DL"
+      case q if q.toLowerCase.contains("bluray") => "BluRay"
+      case q if q.toLowerCase.contains("bdrip")  => "BDRip"
+      case q if q.toLowerCase.contains("brrip")  => "BRRip"
+      case q if q.toLowerCase.contains("web-DL") => "WEB-DL"
       case q if q.toLowerCase.contains("webrip") => "WEBRip"
-      case q if q.toLowerCase.contains("hdtv") => "HDTV"
-      case q if q.toLowerCase.contains("tvrip") => "TVRip"
-      case q if q.toLowerCase.contains("hdcam") => "HDCAM"
+      case q if q.toLowerCase.contains("hdtv")   => "HDTV"
+      case q if q.toLowerCase.contains("tvrip")  => "TVRip"
+      case q if q.toLowerCase.contains("hdcam")  => "HDCAM"
       case _                                     => ""
     }
   }
