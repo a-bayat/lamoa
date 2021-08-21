@@ -1,8 +1,7 @@
 package pro.sanjagh.lamoa.domain
 
-import java.io.{File, FileOutputStream}
+import java.io.{BufferedInputStream, ByteArrayInputStream, File, FileOutputStream, InputStream}
 import java.util.zip.ZipInputStream
-
 import org.jsoup.Connection.Method
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -12,40 +11,33 @@ import pro.sanjagh.lamoa.model.MovieDetail
 import scala.util.{Failure, Success, Try}
 
 object ExtractSubtitle {
-  private val subtitle_url =
-    Configuration.get.getConfig("server.subtitle").getString("address")
-  private val timeout =
-    Configuration.get.getConfig("server.subtitle").getInt("timeout")
+  import Configuration._
 
   /** this function is the main function which handle all the logic of this
     * object
     */
   def extract(address: Option[String]): Unit = {
-    val subtitleName: MovieDetail = MovieFactory.Ignite(address)
-    val elements = checkForSubtitle(subtitleName)
-    val matchedUrl = getSimilarObjects(elements, subtitleName.name) match {
+    val movieDetail: MovieDetail = MovieFactory.Ignite(address)
+    val elements = checkForSubtitle(movieDetail)
+    val matchedUrl = getSimilarObjects(elements, movieDetail.name) match {
       case Success(a) => a.absUrl("href")
       case Failure(_) =>
         println("Subtitle could not be found.")
         sys.exit
     }
 
-    val filteredElement = applyFilter(matchedUrl, subtitleName)
+    val filteredElement = applyFilter(matchedUrl, movieDetail)
 
-    downloadFileInto(getDownloadLink(filteredElement), subtitleName)
+    downloadFileInto(getDownloadLink(filteredElement), movieDetail)
   }
 
   /** this will check the validated name is available in the subtitle site
     * @return
     */
-  def checkForSubtitle(subtitleName: MovieDetail): Elements = {
-    val subtitleHtml =
-      Jsoup
-        .connect(s"$subtitle_url")
-        .timeout(timeout)
-        .data("query", subtitleName.name)
-        .post
-
+  def checkForSubtitle(movieDetail: MovieDetail): Elements = {
+    val request =
+      BaseConnection.post(getSubtitleUrl, Map("query" -> movieDetail.name))
+    val subtitleHtml = Jsoup.parse(request, getSubtitleUrl)
     subtitleHtml.select("div.title")
   }
 
@@ -76,23 +68,20 @@ object ExtractSubtitle {
     *   the link which returns elements
     * @return
     */
-  def applyFilter(url: String, subtitleName: MovieDetail): Element = {
-    val subtitleHtml =
-      Jsoup
-        .connect(url)
-        .timeout(timeout)
-        .get()
+  def applyFilter(url: String, movieDetail: MovieDetail): Element = {
+    val request = BaseConnection.get(url)
+    val subtitleHtml = Jsoup.parse(request, getSubtitleUrl)
 
     var result = subtitleHtml.select(
-      s".content table tr td.a1 a:contains(${subtitleName.language})"
+      s".content table tr td.a1 a:contains(${movieDetail.language})"
     )
-    result = subtitleName match {
+    result = movieDetail match {
       case r if r.quality.isEmpty && r.resolution.nonEmpty =>
-        result.select(s"a:contains(${subtitleName.resolution})")
+        result.select(s"a:contains(${movieDetail.resolution})")
       case r if r.quality.nonEmpty && r.quality.nonEmpty =>
         result
-          .select(s"a:contains(${subtitleName.resolution})")
-          .select(s"a:contains(${subtitleName.quality})")
+          .select(s"a:contains(${movieDetail.resolution})")
+          .select(s"a:contains(${movieDetail.quality})")
     }
 
     result.first()
@@ -105,30 +94,32 @@ object ExtractSubtitle {
     */
   private def getDownloadLink(elm: Element): String = {
     val url = elm.absUrl("href")
-
-    Jsoup.connect(url).get().select(".download a").first.absUrl("href")
+    val request = BaseConnection.get(url)
+    Jsoup.parse(request, getSubtitleUrl).select(".download a").first.absUrl("href")
   }
 
   /** this function download and unzip subtitle into specified directory
     * @param url
     *   the link we try to download file from it
     */
-  def downloadFileInto(url: String, subtitleName: MovieDetail): Unit = {
-    val intro = Jsoup
-      .connect(url)
-      .followRedirects(true)
-      .ignoreContentType(true)
-      .maxBodySize(0)
-      .method(Method.GET)
-      .execute
+  def downloadFileInto(url: String, movieDetail: MovieDetail): Unit = {
+    val connection = BaseConnection.download(url)
 
-    val inputStream = new ZipInputStream(intro.bodyStream())
-    val pathBuilder = new StringBuilder(subtitleName.path.toString)
+    val is:InputStream = connection match {
+      case Right(array) => new ByteArrayInputStream(array)
+      case Left(_) =>
+        println("Could not download file form subtitle site. you can check it out by bellow link:")
+        println(url)
+        sys.exit
+    }
 
-    val amir = inputStream.getNextEntry
+    val inputStream = new ZipInputStream(is)
+    val pathBuilder = new StringBuilder(movieDetail.path.toString)
+
+    val nEntry = inputStream.getNextEntry
     val file = new File(
       pathBuilder
-        .append(amir.getName.substring(amir.getName.lastIndexOf(".")))
+        .append(nEntry.getName.substring(nEntry.getName.lastIndexOf(".")))
         .toString()
     )
     val fos = new FileOutputStream(file)
