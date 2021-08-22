@@ -6,6 +6,7 @@ object StringExtractor {
   private val pattern: Regex = {
     Configuration.get.getConfig("config").getString("regex_pattern").r
   }
+  // TODO Test
   def standardString(str: String): String = {
     pattern.findAllIn(str).foldLeft("") { (a, b) => a + " " + b }.trim
   }

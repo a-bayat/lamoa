@@ -10,7 +10,83 @@ import scala.annotation.tailrec
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 import java.io.File
+import pro.sanjagh.lamoa.UI
+import pro.sanjagh.lamoa.model.MovieNotFoundInImdb
+import pro.sanjagh.lamoa.model.Fault
 
+class MovieFactory2(ui: UI) {
+  def extractMovieDetails(
+      address: Option[String]
+  ): Either[Fault, MovieDetail] =
+    for {
+      files <- FileOperations2.getVideoFilesIn(address)
+      targetFile = ui.choose(files, "Choose target file")(_.getName)
+      cleanedUpName = extractName(targetFile.getName)
+      imdbCandidates <- ImdbValidator
+        .getImdbCandidates(cleanedUpName)
+        .filterOrElse(_.isEmpty, MovieNotFoundInImdb(cleanedUpName))
+      movie = ui.choose(imdbCandidates, "Which movie ?")(identity)
+    } yield {
+      MovieDetail(
+        movie,
+        Path.of(targetFile.getParent + "/" + removeExtension(targetFile)),
+        getYear(targetFile.getName),
+        "",
+        getQuality(targetFile.getName),
+        getResolution(targetFile.getName),
+        Configuration.language
+      )
+    }
+
+  private def extractName(fileName: String): String = {
+    val name = StringExtractor.standardString(fileName)
+    val year_regex = "(19|20)\\d{2}".r
+    val year = year_regex.findFirstIn(name).mkString
+    val finalName = name.substring(0, name.indexOf(year)).trim
+    finalName match {
+      case str if str.isEmpty => name
+      case str: String        => s"$str ($year)"
+      case _                  => name
+    }
+  }
+
+  private def getResolution(file: String): String = {
+    file match {
+      case q
+          if q.toLowerCase
+            .contains("1080p") || q.toLowerCase.contains("1080") =>
+        "1080p"
+      case q
+          if q.toLowerCase.contains("720p") || q.toLowerCase.contains("720") =>
+        "720p"
+      case q
+          if q.toLowerCase.contains("480p") || q.toLowerCase.contains("480") =>
+        "480p"
+      case q if q.toLowerCase.contains("brrip")  => "BRRip"
+      case q if q.toLowerCase.contains("web-dl") => "WEB-DL"
+      case q if q.toLowerCase.contains("webrip") => "WEBRip"
+      case _                                     => ""
+    }
+  }
+
+  private def getQuality(file: String): String = {
+    file match {
+      case q if q.toLowerCase.contains("bluray") => "BluRay"
+      case q if q.toLowerCase.contains("bdrip")  => "BDRip"
+      case q if q.toLowerCase.contains("brrip")  => "BRRip"
+      case q if q.toLowerCase.contains("web-DL") => "WEB-DL"
+      case q if q.toLowerCase.contains("webrip") => "WEBRip"
+      case q if q.toLowerCase.contains("hdtv")   => "HDTV"
+      case q if q.toLowerCase.contains("tvrip")  => "TVRip"
+      case q if q.toLowerCase.contains("hdcam")  => "HDCAM"
+      case _                                     => ""
+    }
+  }
+  private def getYear(file: String): String = {
+    val year_regex = "(19|20)\\d{2}".r
+    year_regex.findAllIn(file).mkString
+  }
+}
 object MovieFactory {
 
   def Ignite(address: Option[String]): MovieDetail = {

@@ -10,6 +10,7 @@ object Configuration {
   import com.typesafe.config.ConfigFactory
   val get: Config = ConfigFactory.load("application.conf").getConfig("lamoa")
 
+  lazy val language = get.getString("language")
   private[domain] def getSubtitleUrl: String = {
     Option(
       Configuration.get.getConfig("server.subtitle").getString("address")
