@@ -2,36 +2,45 @@ package pro.sanjagh.lamoa.domain
 
 import com.typesafe.config.Config
 import pro.sanjagh.lamoa.model.Proxy
+import com.typesafe.config.ConfigFactory
 
 import scala.util.Try
+import scala.util.matching.Regex
 
 object Configuration {
 
-  import com.typesafe.config.ConfigFactory
-  val get: Config = ConfigFactory.load("application.conf").getConfig("lamoa")
+  private lazy val config: Config =
+    ConfigFactory.load("application.conf").getConfig("lamoa")
 
-  lazy val language = get.getString("language")
-  private[domain] def getSubtitleUrl: String = {
-    Option(
-      Configuration.get.getConfig("server.subtitle").getString("address")
-    ).get
-  }
+  lazy val language: String = Option(
+    config.getConfig("config").getString("language")
+  ).get
 
-  private[domain] def getTimeout: Int = {
-    Try(Configuration.get.getConfig("server.subtitle").getInt("timeout"))
+  lazy val getSubtitleUrl: String = Option(
+    config.getConfig("server.subtitle").getString("address")
+  ).get
+
+  lazy val getImdb_url: String = Option(
+    config.getConfig("server.validator").getString("address")
+  ).get
+
+  lazy val getTimeout: Int =
+    Try(config.getConfig("server.subtitle").getInt("timeout"))
       .getOrElse(5000)
-  }
 
-  def connection: Proxy = {
-    val proxyConf = Configuration.get.getConfig("config").getConfig("proxy")
-    Proxy(proxyConf)
-  }
+  lazy val connection: Proxy = Proxy(
+    config.getConfig("config").getConfig("proxy")
+  )
 
-  def getIpV4Regex: String = {
-    Option(Configuration.get.getConfig("config").getString("ip.v4_pattern")).get
-  }
+  lazy val getIpV4Regex: String = Option(
+    config.getConfig("config").getString("ip.v4_pattern")
+  ).get
 
-  def getIpV6Regex: String = {
-    Option(Configuration.get.getConfig("config").getString("ip.v6_pattern")).get
-  }
+  lazy val getIpV6Regex: String = Option(
+    config.getConfig("config").getString("ip.v6_pattern")
+  ).get
+
+  lazy val getMovieNameSplitterPattern: Regex = Option(
+    config.getConfig("config").getString("movie_name_split_pattern").r
+  ).get
 }

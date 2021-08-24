@@ -17,7 +17,7 @@ object ProxyType {
 class Proxy(
     val proxyType: ProxyType = ProxyType.Direct,
     val host: String,
-    val port: Int,
+    val port: Int = 0,
     val username: String = "",
     val password: String = ""
 )

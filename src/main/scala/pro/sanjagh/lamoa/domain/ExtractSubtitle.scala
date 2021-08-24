@@ -1,32 +1,39 @@
 package pro.sanjagh.lamoa.domain
 
-import java.io.{BufferedInputStream, ByteArrayInputStream, File, FileOutputStream, InputStream}
+import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream}
 import java.util.zip.ZipInputStream
-import org.jsoup.Connection.Method
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import org.jsoup.parser.Parser.unescapeEntities
 import org.jsoup.select.Elements
-import pro.sanjagh.lamoa.model.MovieDetail
+import pro.sanjagh.lamoa.model.{MovieDetail, SubtitleNotFoundInSubscene}
 
 import scala.util.{Failure, Success, Try}
 
 object ExtractSubtitle {
   import Configuration._
 
-  /** this function is the main function which handle all the logic of this
-    * object
-    */
-  def extract(address: Option[String]): Unit = {
-    val movieDetail: MovieDetail = MovieFactory.Ignite(address)
+  /**
+   * Tries to find subtitle and filter out most match and finally download the file
+   * @param path path where we look for video file to get subtitle
+   */
+  def findSubtitle(path: Option[String]): Unit = {
+    val movieDetail: MovieDetail =
+      MovieNameExtractor.extractMovieDetails(path, Console) match {
+        case Right(x) => x
+        case Left(e) =>
+          println(e)
+          sys.exit
+      }
     val elements = checkForSubtitle(movieDetail)
     val matchedUrl = getSimilarObjects(elements, movieDetail.name) match {
-      case Success(a) => a.absUrl("href")
-      case Failure(_) =>
-        println("Subtitle could not be found.")
+      case Some(element) => element.absUrl("href")
+      case None =>
+        println(s"Subtitle for '${movieDetail.name}' in $language could not be found.")
         sys.exit
     }
 
-    val filteredElement = applyFilter(matchedUrl, movieDetail)
+    val filteredElement = applyFilterOnResult(matchedUrl, movieDetail)
 
     downloadFileInto(getDownloadLink(filteredElement), movieDetail)
   }
@@ -35,8 +42,12 @@ object ExtractSubtitle {
     * @return
     */
   def checkForSubtitle(movieDetail: MovieDetail): Elements = {
+    val year_regex = "[(19|20)\\d{2}]"
+    val nameWithoutYear = movieDetail.name.replaceAll(year_regex, "").trim
+    /*nameWithoutYear:> be omit the year from the name of imdb result because subscene site works better with out
+    * year attached to name. and finally check the result with the full name of imdb result */
     val request =
-      BaseConnection.post(getSubtitleUrl, Map("query" -> movieDetail.name))
+      BaseConnection.post(getSubtitleUrl, Map("query" -> nameWithoutYear))
     val subtitleHtml = Jsoup.parse(request, getSubtitleUrl)
     subtitleHtml.select("div.title")
   }
@@ -51,15 +62,16 @@ object ExtractSubtitle {
     * @return
     *   the exact item similar to name
     */
-  def getSimilarObjects(elements: Elements, name: String): Try[Element] = {
-
-    elements.select(s"a:contains($name)").first match {
-      case r if r.text == name => Success(r)
-      case _ =>
-        Failure(
-          throw new Exception("Subtitle Not found")
-        ) // TODO: throw NotFoundSubtitleException
-    }
+  def getSimilarObjects(
+      elements: Elements,
+      name: String
+  ): Option[Element] = {
+    Try {
+      val encodedName = name.replace("'", "\\'")
+      elements.select(raw"""a:contains($encodedName)""").first match {
+        case r if r.text == name => r
+      }
+    }.toOption
   }
 
   /** apply all filters on elements related to movie such as quality, resolution
@@ -68,7 +80,7 @@ object ExtractSubtitle {
     *   the link which returns elements
     * @return
     */
-  def applyFilter(url: String, movieDetail: MovieDetail): Element = {
+  def applyFilterOnResult(url: String, movieDetail: MovieDetail): Element = {
     val request = BaseConnection.get(url)
     val subtitleHtml = Jsoup.parse(request, getSubtitleUrl)
 
@@ -95,20 +107,27 @@ object ExtractSubtitle {
   private def getDownloadLink(elm: Element): String = {
     val url = elm.absUrl("href")
     val request = BaseConnection.get(url)
-    Jsoup.parse(request, getSubtitleUrl).select(".download a").first.absUrl("href")
+    Jsoup
+      .parse(request, getSubtitleUrl)
+      .select(".download a")
+      .first
+      .absUrl("href")
   }
 
   /** this function download and unzip subtitle into specified directory
     * @param url
     *   the link we try to download file from it
     */
+  /*TODO => How to test this function*/
   def downloadFileInto(url: String, movieDetail: MovieDetail): Unit = {
     val connection = BaseConnection.download(url)
 
-    val is:InputStream = connection match {
+    val is: InputStream = connection match {
       case Right(array) => new ByteArrayInputStream(array)
       case Left(_) =>
-        println("Could not download file form subtitle site. you can check it out by bellow link:")
+        println(
+          "Could not download file form subtitle site. you can check it out by bellow link:"
+        )
         println(url)
         sys.exit
     }
