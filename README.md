@@ -39,4 +39,3 @@
         - unless notify user directory is not writable (Cancel Process **OR** Specify the other Path to write the file)
     - rename the downloaded file to the name which user specified at first steps
     - save file
-    
