@@ -4,14 +4,14 @@ import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream}
 import java.util.zip.ZipInputStream
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import org.jsoup.parser.Parser.unescapeEntities
 import org.jsoup.select.Elements
-import pro.sanjagh.lamoa.model.{MovieDetail, SubtitleNotFoundInSubscene}
+import pro.sanjagh.lamoa.model.MovieDetail
+import pro.sanjagh.lamoa.setting.AppConfiguration
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 object ExtractSubtitle {
-  import Configuration._
+  import AppConfiguration._
 
   /**
    * Tries to find subtitle and filter out most match and finally download the file
