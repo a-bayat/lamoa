@@ -3,12 +3,12 @@ package pro.sanjagh.lamoa.domain
 import scala.jdk.CollectionConverters._
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
-
 import scala.util.Try
+import pro.sanjagh.lamoa.setting.AppConfiguration
 import pro.sanjagh.lamoa.model.ImdbConnectionException
 
 object ImdbValidator {
-  import Configuration.getImdb_url
+  import AppConfiguration.getImdb_url
 
   /** check the given movie name to be available on IMDB
     * @param movieName

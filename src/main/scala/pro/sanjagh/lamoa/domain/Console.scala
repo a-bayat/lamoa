@@ -39,6 +39,9 @@ object Console extends UI {
     list.size match {
       case s if s > 1  => helper
       case s if s == 1 => list.head
+      case s if s == 0 =>
+        println("No particular Video founded in specified path!")
+        sys.exit
     }
   }
 
