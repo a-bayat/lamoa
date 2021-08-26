@@ -1,18 +1,18 @@
 package pro.sanjagh.lamoa.domain
 
+import pro.sanjagh.lamoa.setting.{UserConfiguration, AppConfiguration}
 import java.nio.file.Path
 import pro.sanjagh.lamoa.domain.MoviePathIdentifier.removeExtension
 import pro.sanjagh.lamoa.model.MovieDetail
 import pro.sanjagh.lamoa.model.MovieNotFoundInImdb
 import pro.sanjagh.lamoa.model.Fault
-
 import scala.util.Try
 
 /** Extract the standard name of movie by it's name validate the name on IMDB
   * site
   */
 object MovieNameExtractor {
-  import Configuration._
+  import AppConfiguration._
 
   /** Create a Movie Model by extracting data from it's name
     * @param path
@@ -21,7 +21,8 @@ object MovieNameExtractor {
     *   generic helper
     * @return
     *   the detailed information model of movie
-    */ /*TODO: => how to test this function*/
+    */
+  /*TODO: => how to test this function*/
   def extractMovieDetails(
       path: Option[String],
       ui: UI
@@ -36,9 +37,10 @@ object MovieNameExtractor {
       imdbCandidates <- ImdbValidator
         .getImdbCandidates(cleanedUpName)
         .filterOrElse(_.nonEmpty, MovieNotFoundInImdb(cleanedUpName))
-      imdbValidMovieName = getMostMatchToImdb(cleanedUpName, imdbCandidates).getOrElse {
-        ui.choose(imdbCandidates, "Which movie ?")(identity)
-      }
+      imdbValidMovieName = getMostMatchToImdb(cleanedUpName, imdbCandidates)
+        .getOrElse {
+          ui.choose(imdbCandidates, "Which movie ?")(identity)
+        }
     } yield {
       MovieDetail(
         imdbValidMovieName,
@@ -47,7 +49,7 @@ object MovieNameExtractor {
         "",
         findMovieQuality(targetFile.getName),
         findMovieResolution(targetFile.getName),
-        Configuration.language
+        UserConfiguration.language
       )
     }
 
@@ -70,14 +72,18 @@ object MovieNameExtractor {
     }
   }
 
-  /**
-   * get the most similar item from the list of available items by IMDB result
-   * @param videoName the movie name we try to find best match
-   * @param imdbAvailableVideo the result of IMDB item list
-   * @return
-   */
-  def getMostMatchToImdb(videoName: String, imdbAvailableVideo: List[String]): Option[String] = {
-    Try{
+  /** get the most similar item from the list of available items by IMDB result
+    * @param videoName
+    *   the movie name we try to find best match
+    * @param imdbAvailableVideo
+    *   the result of IMDB item list
+    * @return
+    */
+  def getMostMatchToImdb(
+      videoName: String,
+      imdbAvailableVideo: List[String]
+  ): Option[String] = {
+    Try {
       val idx = imdbAvailableVideo.indexWhere(video => video == videoName)
       imdbAvailableVideo(idx)
     }.toOption

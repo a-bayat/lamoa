@@ -2,6 +2,8 @@ package pro.sanjagh.lamoa.model
 
 import com.typesafe.config.Config
 
+import scala.util.Try
+
 /** ProxyType is an product algebraic datatype which specifies type of
   * connection
   */
@@ -16,27 +18,29 @@ object ProxyType {
 
 class Proxy(
     val proxyType: ProxyType = ProxyType.Direct,
-    val host: String,
+    val host: String = "",
     val port: Int = 0,
     val username: String = "",
     val password: String = ""
 )
 
 object Proxy {
-  import pro.sanjagh.lamoa.domain.Configuration._
 
   def apply(proxyConf: Config): Proxy = {
-    val proxyType = proxyConf.getString("type") match {
+    val proxyTypeValue: String =
+      Try(proxyConf.getString("type")).getOrElse("")
+
+    val proxyType = proxyTypeValue match {
       case pt if pt == "http"        => ProxyType.Http
       case pt if pt == "https"       => ProxyType.Https
       case pt if pt.contains("sock") => ProxyType.Socks
       case _                         => ProxyType.Direct
     }
 
-    val host = proxyConf.getString("host")
-    val port = proxyConf.getInt("port")
-    val username = proxyConf.getString("username")
-    val password = proxyConf.getString("password")
+    val host = Try(proxyConf.getString("host")).getOrElse("")
+    val port = Try(proxyConf.getInt("port")).getOrElse(0)
+    val username = Try(proxyConf.getString("username")).getOrElse("")
+    val password = Try(proxyConf.getString("password")).getOrElse("")
 
     Proxy(proxyType, host, port, username, password)
   }

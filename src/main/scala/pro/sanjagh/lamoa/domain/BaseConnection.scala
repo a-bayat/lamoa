@@ -1,13 +1,8 @@
 package pro.sanjagh.lamoa.domain
-import sttp.client3.{HttpURLConnectionBackend, Identity, Response, SttpBackend, SttpBackendOptions}
-import sttp.client3.quick._
-import sttp.model.Uri
-import pro.sanjagh.lamoa.model.Proxy
-import Configuration._
+import pro.sanjagh.lamoa.setting.{AppConfiguration, UserConfiguration}
 import pro.sanjagh.lamoa.model.ProxyType._
-import sttp.client3
-
-import java.io.InputStream
+import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend, SttpBackendOptions}
+import sttp.client3.quick._
 import scala.concurrent.duration._
 
 object BaseConnection {
@@ -27,27 +22,19 @@ object BaseConnection {
       .body
   }
 
-   def download(url: String):Either[String, Array[Byte]] = {
+  def download(url: String): Either[String, Array[Byte]] = {
     quickRequest
-     .get(uri"$url")
-     .response(asByteArray).send(getBackend).body
+      .get(uri"$url")
+      .response(asByteArray)
+      .send(getBackend)
+      .body
   }
 
   private def getBackend: SttpBackend[Identity, Any] = {
-    val proxy = Configuration.connection
+    val proxy = UserConfiguration.connection
 
     val proxyType = proxy.proxyType match {
-      case Http =>
-        if (proxy.username.trim.isEmpty)
-          SttpBackendOptions.httpProxy(proxy.host, proxy.port)
-        else
-          SttpBackendOptions.httpProxy(
-            proxy.host,
-            proxy.port,
-            proxy.username,
-            proxy.password
-          )
-      case Https =>
+      case Http | Https =>
         if (proxy.username.trim.isEmpty)
           SttpBackendOptions.httpProxy(proxy.host, proxy.port)
         else
@@ -72,7 +59,7 @@ object BaseConnection {
     }
 
     HttpURLConnectionBackend(
-      proxyType.connectionTimeout(Configuration.getTimeout.millisecond)
+      proxyType.connectionTimeout(AppConfiguration.getTimeout.millisecond)
     )
   }
 }
