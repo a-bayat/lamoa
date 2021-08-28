@@ -19,9 +19,9 @@ jobs:
     - name: Run packagin
       run: |
         sbt universal:packageBin
-        cd ~/work/lamoa/lamoa/project/target/scala-2.13/
-        ls ./
-        ls ./universal
+        ls ~/work/lamoa/lamoa/target/scala-2.13/
+        ls ~/work/lamoa/lamoa/target/scala-2.13/universal
+        ls ~/work/lamoa/lamoa/target/universal/
 #     - name: Packaging the artifact
 #       uses: actions/upload-artifact@v2
 #       with:
