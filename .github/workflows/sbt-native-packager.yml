@@ -18,5 +18,5 @@ jobs:
         distribution: 'adopt'
     - name: Run packagin
       run: |
-        sbt sbt universal:packageBin
+        sbt universal:packageBin
         echo ~
