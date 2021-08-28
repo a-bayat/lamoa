@@ -19,4 +19,9 @@ jobs:
     - name: Run packagin
       run: |
         sbt universal:packageBin
-        echo ~
+        cd ~/work/lamoa/lamoa/project/target/universal/
+        ls
+#     - name: Packaging the artifact
+#       uses: actions/upload-artifact@v2
+#       with:
+#             name: 
