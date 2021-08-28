@@ -17,4 +17,6 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
     - name: Run packagin
-      run: sbt sbt universal:packageBin
+      run: |
+        sbt sbt universal:packageBin
+        echo ~
