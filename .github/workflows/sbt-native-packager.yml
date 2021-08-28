@@ -19,10 +19,10 @@ jobs:
     - name: Run packagin
       run: |
         sbt universal:packageBin
-        ls ~/work/lamoa/lamoa/target/universal/
-        ls ~/work/lamoa/lamoa/target/universal/update
-        ls ~/work/lamoa/lamoa/target/universal/zinc
-#     - name: Packaging the artifact
-#       uses: actions/upload-artifact@v2
-#       with:
-#             name: 
+        cd ~/work/lamoa/lamoa/target/universal/
+        mv ./lamoa-0.1.0-SNAPSHOT.zip ./lamoa.zip
+    - name: Packaging the artifact
+      uses: actions/upload-artifact@v2
+      with:
+            name: uinversal pack
+            path: ~/work/lamoa/lamoa/target/universal/lamoa.zip
