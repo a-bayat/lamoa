@@ -1,4 +1,4 @@
-name: Release
+name: Release CI
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ main ]
 
+  workflow_dispatch:
 jobs:
   build:
 
@@ -25,8 +26,15 @@ jobs:
         sbt universal:packageBin
         cd ~/work/lamoa/lamoa/target/universal/
         mv ./lamoa-0.1.0-SNAPSHOT.zip ./lamoa.zip
-    - name: Packaging the artifact
-      uses: actions/upload-artifact@v2
+#     - name: Packaging the artifact
+#       uses: actions/upload-artifact@v2
+#       with:
+#             name: uinversal pack
+#             path: ~/work/lamoa/lamoa/target/universal/lamoa.zip
+
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
       with:
-            name: uinversal pack
-            path: ~/work/lamoa/lamoa/target/universal/lamoa.zip
+        files: ~/work/lamoa/lamoa/target/universal/lamoa.zip
