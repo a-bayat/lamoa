@@ -2,8 +2,8 @@ name: Release CI
 
 on:
   push:
-      tags:
-        - "v*.*.*"
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
@@ -22,8 +22,6 @@ jobs:
         sbt universal:packageBin
         cd ~/work/lamoa/lamoa/target/universal/
         mv ./lamoa-0.1.0-SNAPSHOT.zip ./lamoa.zip\
-        echo "github.ref"
-        echo ${{github.ref}}
 #     - name: Packaging the artifact
 #       uses: actions/upload-artifact@v2
 #       with:
