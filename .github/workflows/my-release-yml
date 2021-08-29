@@ -2,8 +2,8 @@ name: Release Runner
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+      tags:
+        - "v*.*.*"
 
 jobs:
   build:
@@ -17,12 +17,13 @@ jobs:
         distribution: 'adopt'
     - name: Run tests
       run: sbt test
-    - name: Universal Packaging
+    - name: Run packagin
       run: |
         sbt universal:packageBin
         cd ~/work/lamoa/lamoa/target/universal/
-        mv ./lamoa-*.zip ./lamoa.zip
-    - name: Release
+        mv ./lamoa-0.1.0-SNAPSHOT.zip ./lamoa.zip
+
+    - name: Run Release
       uses: softprops/action-gh-release@v1
       with:
          files: ~/work/lamoa/lamoa/target/universal/lamoa.zip
