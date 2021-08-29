@@ -2,10 +2,9 @@ name: Release CI
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-     
+      tags:
+        - "v*.*.*"
+
 jobs:
   build:
     runs-on: ubuntu-latest    
@@ -33,6 +32,5 @@ jobs:
 
     - name: Release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
          files: ~/work/lamoa/lamoa/target/universal/lamoa.zip
