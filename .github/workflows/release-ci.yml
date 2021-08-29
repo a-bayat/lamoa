@@ -7,8 +7,11 @@ name: Release CI
 #     branches: [ main ]
     
 on:
-  push:
-
+   push:
+      branches: [ main ]
+   pull_request:
+     branches: [ main ]
+     
 jobs:
   build:
 
