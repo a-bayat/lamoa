@@ -2,28 +2,65 @@ name: Release CI
 
 on:
   push:
+    tags:
+      - "v*.*.*"
 
-jobs:
-  build:
+jobs:  
+           
+    TestProcess:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Run tests
+        run: sbt test
 
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
-      with:
-        java-version: '11'
-        distribution: 'adopt'
-    - name: Run tests
-      run: sbt test
-    - name: Run packaging
-      run: |
-        sbt universal:packageBin
-        cd ~/work/lamoa/lamoa/target/universal/
-        mv ./lamoa-0.1.0-SNAPSHOT.zip ./lamoa.zip\
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-         files: ~/work/lamoa/lamoa/target/universal/lamoa.zip
+    BuildArtifacts:
+      runs-on: ${{ matrix.os }}
+      strategy:
+        matrix:
+          os: [ubuntu-latest, macos-latest]
+      needs: TestProcess
+      env:
+        release-build-path: ${{ github.workspace }}/release-build
+      steps:
+        - uses: actions/checkout@v2
+        - name: Prerequisite
+          run: |
+            mkdir ${{env.release-build-path}}
+        - uses: olafurpg/setup-scala@v11
+          with:
+            java-version: adopt@1.11
+            
+        - name: Linux(DEB-RPM) Native Package Building
+          if: matrix.os == 'ubuntu-latest'
+          run: |
+            sbt universal:packageBin
+            sbt universal:packageZipTarball
+            sbt debian:packageBin
+            sbt rpm:packageBin
+            find ${{ github.workspace }}/target -type f -regex ".*lamoa.*zip"  -exec cp "{}" ${{env.release-build-path}}/lamoa.universal.zip  \;
+            find ${{ github.workspace }}/target -type f -regex ".*lamoa.*zip"  -exec cp "{}" ${{env.release-build-path}}/lamoa.universal.tar.gz  \;
+            find ${{ github.workspace }}/target -type f -regex ".*lamoa.*deb"  -exec cp "{}" ${{env.release-build-path}}/lamoa.amd64.deb  \;
+            find ${{ github.workspace }}/target -type f -regex ".*lamoa.*rpm"  -exec cp "{}" ${{env.release-build-path}}/lamoa.x86_64.rpm  \;
+            
+        - name: MacOs Native Package Building
+          if: matrix.os == 'macos-latest'
+          run: |
+            sbt universal:packageOsxDmg  
+            mv ./target/universal/lamoa-1.0.0.dmg ./target/universal/lamoa.mac.dmg
+            zip ./target/universal/lamoa.mac.zip ./target/universal/lamoa.mac.dmg
+            mv ./target/universal/lamoa.mac.zip ${{env.release-build-path}}
+        - name: Release
+          uses: softprops/action-gh-release@v1
+          with:
+            files: |
+              ${{env.release-build-path}}/lamoa.universal.zip
+              ${{env.release-build-path}}/lamoa.universal.tar.gz
+              ${{env.release-build-path}}/lamoa.amd64.deb
+              ${{env.release-build-path}}/lamoa.x86_64.rpm
+              ${{env.release-build-path}}/lamoa.mac.zip
