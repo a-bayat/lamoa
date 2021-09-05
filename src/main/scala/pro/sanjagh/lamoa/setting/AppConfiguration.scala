@@ -3,12 +3,13 @@ package pro.sanjagh.lamoa.setting
 import com.typesafe.config.{Config, ConfigFactory}
 import pro.sanjagh.lamoa.setting.UserConfiguration.config
 
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 import scala.util.matching.Regex
 
-/**
- * This Config file related to application settings which read setting from application.conf
- */
+/** This Config file related to application settings which read setting from
+  * application.conf
+  */
 object AppConfiguration extends Configuration {
 
   val config: Config = ConfigFactory.load("application.conf").getConfig("lamoa")
@@ -34,4 +35,9 @@ object AppConfiguration extends Configuration {
   lazy val getMovieNameSplitterPattern: Regex = Option(
     config.getConfig("config").getString("movie_name_split_pattern").r
   ).get
+
+  lazy val getQuoteList: List[String] = Option(
+    config.getConfig("config").getStringList("quotes")
+  ).get.asScala.toList
+
 }
