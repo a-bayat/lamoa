@@ -1,33 +1,41 @@
 package pro.sanjagh.lamoa.domain
+import pro.sanjagh.lamoa.model.{Fault, SubsceneConnectionException, SubtitleDownloadException}
 import pro.sanjagh.lamoa.setting.{AppConfiguration, UserConfiguration}
 import pro.sanjagh.lamoa.model.ProxyType._
 import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend, SttpBackendOptions}
 import sttp.client3.quick._
 import scala.concurrent.duration._
+import scala.util.Try
 
 object BaseConnection {
 
-  private[domain] def get(url: String): String = {
-    quickRequest
-      .get(uri"$url")
-      .send(getBackend)
-      .body
+  private[domain] def get(url: String): Either[Throwable, String] = {
+    Try {
+      quickRequest
+       .get(uri"$url")
+       .send(getBackend)
+       .body
+    }.toEither
   }
 
-  private[domain] def post(url: String, param: Map[String, String]): String = {
-    quickRequest
-      .body(param)
-      .post(uri"$url")
-      .send(getBackend)
-      .body
+  private[domain] def post(url: String, param: Map[String, String]): Either[Fault, String] = {
+    Try {
+      quickRequest
+       .body(param)
+       .post(uri"$url")
+       .send(getBackend)
+       .body
+    }.toEither.swap.map(SubsceneConnectionException).swap
   }
 
-  def download(url: String): Either[String, Array[Byte]] = {
-    quickRequest
-      .get(uri"$url")
-      .response(asByteArray)
-      .send(getBackend)
-      .body
+  def download(url: String): Either[SubtitleDownloadException, Array[Byte]] = {
+    Try {
+      quickRequest
+       .get(uri"$url")
+       .response(asByteArray)
+       .send(getBackend)
+       .body.getOrElse(Array())
+    }.toEither.swap.map(SubtitleDownloadException).swap
   }
 
   private def getBackend: SttpBackend[Identity, Any] = {

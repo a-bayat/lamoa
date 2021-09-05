@@ -2,6 +2,7 @@ package pro.sanjagh.lamoa.setting
 
 import com.typesafe.config.{Config, ConfigFactory}
 import pro.sanjagh.lamoa.model.{Proxy, ProxyType}
+import pro.sanjagh.lamoa.util.BrushConsole
 
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 
@@ -46,7 +47,7 @@ object UserConfiguration extends Configuration {
       Files.createDirectory(path)
 
     if (!Files.exists(configFile)) {
-      println(
+      BrushConsole.printInfoMessage(
         s"""Config file created under $configFile. you can configure app through this file.
 \t- In the propose of build or reset config file, remove specified file."""
       )

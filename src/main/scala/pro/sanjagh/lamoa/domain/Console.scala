@@ -1,15 +1,13 @@
 package pro.sanjagh.lamoa.domain
 
-import com.colofabrix.scala.figlet4s.options.HorizontalLayout
-import com.colofabrix.scala.figlet4s.unsafe.{
-  FIGureOps,
-  Figlet4s,
-  OptionsBuilderOps
-}
+import com.colofabrix.scala.figlet4s.unsafe.{FIGureOps, Figlet4s, OptionsBuilderOps}
+import pro.sanjagh.lamoa.setting.AppConfiguration
+import pro.sanjagh.lamoa.util.BrushConsole
 
+import scala.io.AnsiColor._
 import scala.annotation.tailrec
 import scala.io.StdIn
-import scala.util.{Success, Try}
+import scala.util.{Random, Success, Try}
 
 sealed trait UI {
   def choose[T](list: List[T], message: String)(f: T => String): T
@@ -20,14 +18,17 @@ object Console extends UI {
   def choose[T](list: List[T], message: String)(f: T => String): T = {
 
     def helper: T = {
-      println(message)
+      BrushConsole.printMessage(message)
       list.zipWithIndex.foreach { case (elm, idx) =>
-        println(s"\t$idx: ${f(elm)}")
+        println(s"\t${CYAN}$idx: ${f(elm)}")
       }
 
       @tailrec
       def recItem: Int = {
-        print("Enter the Item index you wish: ")
+        print(
+          s"${GREEN}${BOLD}Enter the Item index you wish [0-${list.size - 1}]: ${RESET}"
+        )
+
         Try(StdIn.readInt()) match {
           case Success(n) if n >= 0 && n < list.size => n
           case _                                     => recItem
@@ -40,7 +41,7 @@ object Console extends UI {
       case s if s > 1  => helper
       case s if s == 1 => list.head
       case s if s == 0 =>
-        println("No particular Video founded in specified path!")
+        BrushConsole.printInfoMessage("No particular Video was founded in the specified path!")
         sys.exit
     }
   }
@@ -48,7 +49,16 @@ object Console extends UI {
   def printBanner(): Unit =
     Figlet4s
       .builder("LAMOA")
-      .withHorizontalLayout(HorizontalLayout.FullWidth)
-      .render()
-      .print()
+      .render
+      .asSeq
+      .zipWithIndex
+      .foreach { case (line, i) =>
+        if (
+          i == 4
+        )
+          println(
+            s"${BOLD}${MAGENTA}$line ${BLUE}${Random.shuffle(AppConfiguration.getQuoteList).headOption.get}${RESET}"
+          )
+        else println(s"${MAGENTA}$line${RESET}")
+      }
 }

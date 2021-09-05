@@ -1,11 +1,14 @@
 package pro.sanjagh.lamoa.domain
 
-import pro.sanjagh.lamoa.setting.{UserConfiguration, AppConfiguration}
+import pro.sanjagh.lamoa.setting.{AppConfiguration, UserConfiguration}
+
 import java.nio.file.Path
 import pro.sanjagh.lamoa.domain.MoviePathIdentifier.removeExtension
 import pro.sanjagh.lamoa.model.MovieDetail
 import pro.sanjagh.lamoa.model.MovieNotFoundInImdb
 import pro.sanjagh.lamoa.model.Fault
+import pro.sanjagh.lamoa.util.Utilities.levenshtein
+
 import scala.util.Try
 
 /** Extract the standard name of movie by it's name validate the name on IMDB
@@ -35,11 +38,15 @@ object MovieNameExtractor {
       )(_.getName)
       cleanedUpName = cleanedUpMovieName(targetFile.getName)
       imdbCandidates <- ImdbValidator
-        .getImdbCandidates(cleanedUpName)
-        .filterOrElse(_.nonEmpty, MovieNotFoundInImdb(cleanedUpName))
-      imdbValidMovieName = getMostMatchToImdb(cleanedUpName, imdbCandidates)
+       .getImdbCandidates(pureMovieNameWithoutYear(cleanedUpName))
+       .filterOrElse(_.nonEmpty, MovieNotFoundInImdb(cleanedUpName))
+      mostMatchedImdbCandidates = getMostMatchToImdb(cleanedUpName, imdbCandidates)
+      imdbValidMovieName = getExactMatchToImdb(cleanedUpName, mostMatchedImdbCandidates)
         .getOrElse {
-          ui.choose(imdbCandidates, "Which movie ?")(identity)
+          ui.choose(
+            mostMatchedImdbCandidates,
+            "The most founded match listed bellow, Which one is right? "
+          )(identity)
         }
     } yield {
       MovieDetail(
@@ -72,6 +79,25 @@ object MovieNameExtractor {
     }
   }
 
+  /** Extract the name of movie from its file name and remove additional things
+    * from it's name it also split the words by the defined pattern and remove
+    * @param movieFileName
+    *   the name of movie
+    * @return
+    *   the pure name of movie (The.Name.Of.Movie.2013.1080p.mp4) => The Name Of
+    *   Movie (2013) for example
+    */
+  def pureMovieNameWithoutYear(movieFileName: String): String = {
+    val movieName = movieNamePurify(movieFileName)
+    val year = findReleaseYear(movieName)
+    val finalName = movieName.substring(0, movieName.indexOf(year)).trim
+    finalName match {
+      case str if str.isEmpty => movieName
+      case str: String        => s"$str"
+      case _                  => movieName
+    }
+  }
+
   /** get the most similar item from the list of available items by IMDB result
     * @param videoName
     *   the movie name we try to find best match
@@ -79,7 +105,7 @@ object MovieNameExtractor {
     *   the result of IMDB item list
     * @return
     */
-  def getMostMatchToImdb(
+  def getExactMatchToImdb(
       videoName: String,
       imdbAvailableVideo: List[String]
   ): Option[String] = {
@@ -87,7 +113,16 @@ object MovieNameExtractor {
       val idx = imdbAvailableVideo.indexWhere(video => video == videoName)
       imdbAvailableVideo(idx)
     }.toOption
+  }
 
+  def getMostMatchToImdb(
+      videoName: String,
+      imdbAvailableVideo: List[String]
+  ): List[String] = {
+    val releaseYear: String = findReleaseYear(videoName)
+    val filteredByReleaseYear =
+      imdbAvailableVideo.filter(_.contains(releaseYear))
+    filteredByReleaseYear.filter(levenshtein(videoName, _) < 5)
   }
 
   /** remove special character such [.-_*+ and ...]

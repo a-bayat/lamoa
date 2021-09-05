@@ -77,7 +77,7 @@ class MovieNameExtractorTest extends UnitSpec {
 
   "Find the most match Item in list" should {
     "Should find the match" in {
-      getMostMatchToImdb(
+      getExactMatchToImdb(
         "Beirut (2018)",
         List(
           "Beirut (2018)",
@@ -87,7 +87,7 @@ class MovieNameExtractorTest extends UnitSpec {
       ) shouldBe (Some("Beirut (2018)"))
     }
     "Should return None cause the item is not available" in {
-      getMostMatchToImdb(
+      getExactMatchToImdb(
         "Tomb Raider (2018)",
         List(
           "Tomb Cruise (2014)",
