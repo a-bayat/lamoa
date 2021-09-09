@@ -2,8 +2,7 @@ name: Release CI
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+
 
 jobs:  
            
