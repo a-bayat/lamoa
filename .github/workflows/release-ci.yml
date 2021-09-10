@@ -52,7 +52,7 @@ jobs:
           if: matrix.os == 'windows-2016'
           run: |
             sbt windows:packageBin
-            dir /a/s ${{ github.workspace }}
+#            dir /a/s ${{ github.workspace }}
                     
             
             
