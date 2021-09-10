@@ -52,8 +52,8 @@ jobs:
           if: matrix.os == 'windows-2016'
           run: |
             sbt windows:packageBin
-            dir ${{ github.workspace }}/
-            dir ${{ github.workspace }}/release-build
+            dir ${{ github.workspace }}\
+            dir ${{ github.workspace }}\release-build
                     
             
             
