@@ -52,9 +52,13 @@ jobs:
           if: matrix.os == 'windows-2016'
           run: |
             sbt windows:packageBin
-            dir D:\a\lamoa\lamoa\release-build
             dir ${{ github.workspace }}
-            dir /a ${{ github.workspace }}
+        - name: Upload a Build Artifact
+          uses: actions/upload-artifact@v2.2.4
+          with:
+            # Artifact name
+            name: windows pack
+            path: ${{ github.workspace }}\release-build\
 
             
             
