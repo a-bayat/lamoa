@@ -47,7 +47,8 @@ jobs:
             find ${{ github.workspace }}/target -type f -regex ".*lamoa.*deb"  -exec cp "{}" ${{env.release-build-path}}/lamoa.amd64.deb  \;
             find ${{ github.workspace }}/target -type f -regex ".*lamoa.*rpm"  -exec cp "{}" ${{env.release-build-path}}/lamoa.x86_64.rpm  \;
             ls ${{env.release-build-path}} -lh
-            ls ${{ github.workspace }}/target/universal/ -ln
+            ls ${{ github.workspace }}/target/universal/ -lh
+            find ${{ github.workspace }}/target -type f -regex ".*lamoa.*zip" -exec du -sh {} \;
             
         - name: MacOs Native Package Building
           if: matrix.os == 'macos-latest'
