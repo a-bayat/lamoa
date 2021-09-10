@@ -53,12 +53,17 @@ jobs:
           run: |
             sbt windows:packageBin
             dir ${{ github.workspace }}
+        - uses: papeloto/action-zip@v1
+          with:
+            files: ${{ github.workspace }}\release-build\
+            dest: release.zip
         - name: Upload a Build Artifact
           uses: actions/upload-artifact@v2.2.4
           with:
             # Artifact name
             name: windows pack
             path: ${{ github.workspace }}\release-build\
+        - run: dir ${{ github.workspace }}
 
             
             
