@@ -60,12 +60,8 @@ jobs:
         - name: Upload a Build Artifact
           uses: actions/upload-artifact@v2.2.4
           with:
-            # Artifact name
             name: windows pack
-            path: ${{ github.workspace }}\release-build\release.zip
-          if: matrix.os == 'windows-2016'
-        - run: dir ${{ github.workspace }}
-
+            path: ${{ github.workspace }}\release.zip
             
             
         - name: MacOs Native Package Building
