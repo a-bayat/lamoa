@@ -53,10 +53,6 @@ jobs:
           run: |
             sbt windows:packageBin
             dir /a/s ${{ github.workspace }}
-            echo new
-            dir /a/s ${{ github.workspace }}\src\
-            echo new
-            dir /a/s ${{ github.workspace }}\release-build\
                     
             
             
