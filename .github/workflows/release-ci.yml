@@ -2,6 +2,8 @@ name: Release CI
 
 on:
   push:
+    tags:
+      - "v*.*.*"
 
 
 jobs:  
@@ -54,12 +56,12 @@ jobs:
             mv ./target/universal/lamoa-1.0.0.dmg ./target/universal/lamoa.mac.dmg
             zip ./target/universal/lamoa.mac.zip ./target/universal/lamoa.mac.dmg
             mv ./target/universal/lamoa.mac.zip ${{env.release-build-path}}
-#         - name: Release
-#           uses: softprops/action-gh-release@v1
-#           with:
-#             files: |
-#               ${{env.release-build-path}}/lamoa.universal.zip
-#               ${{env.release-build-path}}/lamoa.universal.tgz
-#               ${{env.release-build-path}}/lamoa.amd64.deb
-#               ${{env.release-build-path}}/lamoa.x86_64.rpm
-#               ${{env.release-build-path}}/lamoa.mac.zip
+        - name: Release
+          uses: softprops/action-gh-release@v1
+          with:
+            files: |
+              ${{env.release-build-path}}/lamoa.universal.zip
+              ${{env.release-build-path}}/lamoa.universal.tgz
+              ${{env.release-build-path}}/lamoa.amd64.deb
+              ${{env.release-build-path}}/lamoa.x86_64.rpm
+              ${{env.release-build-path}}/lamoa.mac.zip
