@@ -52,7 +52,8 @@ jobs:
           if: matrix.os == 'windows-2016'
           run: |
             sbt windows:packageBin
-            dir ${{ github.workspace }}/release-build/
+            dir ${{ github.workspace }}/release-build
+            dir D:\a\lamoa\lamoa/release-build
 
             
             
