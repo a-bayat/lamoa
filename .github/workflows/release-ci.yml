@@ -62,7 +62,8 @@ jobs:
           with:
             # Artifact name
             name: windows pack
-            path: ${{ github.workspace }}\release-build\
+            path: ${{ github.workspace }}\release-build\release.zip
+          if: matrix.os == 'windows-2016'
         - run: dir ${{ github.workspace }}
 
             
