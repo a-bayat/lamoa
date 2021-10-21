@@ -6,23 +6,24 @@ import pro.sanjagh.lamoa.util.BrushConsole
 
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 
-/**
- * This Config file related to user manual configuration such language and proxy
- */
+/** This Config file related to user manual configuration such language and
+  * proxy
+  */
 object UserConfiguration extends Configuration {
 
-  private val config: Config = {
-    val confPath = Path.of(
-      s"${System.getProperty("user.home")}",
-      ".config",
-      "lamoa",
-      "config"
-    )
+  lazy val getConfPath: Path = Path.of(
+    s"${System.getProperty("user.home")}",
+    ".config",
+    "lamoa",
+    "config"
+  )
 
-    if (!Files.exists(confPath))
+  private val config: Config = {
+
+    if (!Files.exists(getConfPath))
       checkConfigFileExist()
 
-    ConfigFactory.parseFile(confPath.toFile)
+    ConfigFactory.parseFile(getConfPath.toFile)
   }
 
   lazy val language: String =
@@ -35,9 +36,8 @@ object UserConfiguration extends Configuration {
     AppConfiguration.config.getString("userConfigFileContent")
   ).get
 
-  /**
-   * check config directory and file exist. unless generate a new one
-   */
+  /** check config directory and file exist. unless generate a new one
+    */
   def checkConfigFileExist(): Unit = {
     val path: Path =
       Paths.get(s"${System.getProperty("user.home")}", ".config", "lamoa")

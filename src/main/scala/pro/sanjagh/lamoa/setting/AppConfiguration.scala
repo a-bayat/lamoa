@@ -40,4 +40,10 @@ object AppConfiguration extends Configuration {
     config.getConfig("config").getStringList("quotes")
   ).get.asScala.toList
 
+  def changeProtocol: Either[IllegalArgumentException, _] = ???
+  def changeHost:Either[IllegalArgumentException, _] = ???
+  def changePort:Either[IllegalArgumentException, _] = ???
+  def changeUsername: Either[IllegalArgumentException, _] = ???
+  def changePass:Either[IllegalArgumentException, _] = ???
+
 }

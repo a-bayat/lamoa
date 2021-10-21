@@ -1,7 +1,11 @@
 package pro.sanjagh.lamoa.domain
 
-import com.colofabrix.scala.figlet4s.unsafe.{FIGureOps, Figlet4s, OptionsBuilderOps}
-import pro.sanjagh.lamoa.setting.AppConfiguration
+import com.colofabrix.scala.figlet4s.unsafe.{
+  FIGureOps,
+  Figlet4s,
+  OptionsBuilderOps
+}
+import pro.sanjagh.lamoa.setting.{AppConfiguration, UserConfiguration}
 import pro.sanjagh.lamoa.util.BrushConsole
 
 import scala.io.AnsiColor._
@@ -41,7 +45,9 @@ object Console extends UI {
       case s if s > 1  => helper
       case s if s == 1 => list.head
       case s if s == 0 =>
-        BrushConsole.printInfoMessage("No particular Video was founded in the specified path!")
+        BrushConsole.printInfoMessage(
+          "No particular Video was founded in the specified path!"
+        )
         sys.exit
     }
   }
@@ -53,9 +59,7 @@ object Console extends UI {
       .asSeq
       .zipWithIndex
       .foreach { case (line, i) =>
-        if (
-          i == 4
-        )
+        if (i == 4)
           println(
             s"${BOLD}${MAGENTA}$line ${BLUE}${Random.shuffle(AppConfiguration.getQuoteList).headOption.get}${RESET}"
           )
