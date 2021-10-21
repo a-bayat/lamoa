@@ -20,12 +20,12 @@ object ImdbValidator {
       movieName: String
   ): Either[ImdbConnectionException, List[String]] = {
     Try {
-      val request = RequestWrapper.get(s"$getImdb_url$movieName &s=tt")
+      val request = RequestWrapper.get(getImdb_url.format(movieName))
       val imdbHtml = Jsoup.parse(request)
       val titleElements: Elements = imdbHtml
         .select(s".findResult .result_text")
         .not(
-          ":contains(TV Episode), :contains(TV Series), :contains(in development), :contains(TV Mini Series)"
+          ":contains(TV Episode), :contains(TV Series), :contains(in development), :contains(TV Mini Series), :contains(Short)"
         )
       titleElements
         .select("a")
